@@ -14,17 +14,19 @@
   ],
   "author": "Jun Jun M. Zaragosa",
   "license": "MIT",
-  "description": "",
+  "description": "Using AI to generate the data for a force directed graph. Aid for brainstorming ideas",
   "dependencies": {
-    "express": "^4.21.2",
-    "nodemon": "^3.1.9",
     "@google/generative-ai": "^0.21.0",
     "axios": "^1.7.8",
     "connect-flash": "^0.1.1",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "fdg-and-ai": "file:",
     "multer": "^1.4.5-lts.1",
+    "nodemon": "^3.1.9",
     "pdfkit": "^0.15.2"
   }
 }

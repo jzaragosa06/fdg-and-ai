@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainstorm AI Services</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Custom color scheme */
+        :root {
+            --blue-color: #106EBE;
+            --mint-color: #0FFCBE;
+            --light-gray: #F7FAFC;
+            --dark-gray: #2D3748;
+        }
+
+        /* Applying custom colors */
+        .bg-blue {
+            background-color: var(--blue-color);
+        }
+
+        .bg-mint {
+            background-color: var(--mint-color);
+        }
+
+        .text-blue {
+            color: var(--blue-color);
+        }
+
+        .text-mint {
+            color: var(--mint-color);
+        }
+
+        .text-dark {
+            color: var(--dark-gray);
+        }
+
+        .bg-light-gray {
+            background-color: var(--light-gray);
+        }
+
+        /* Hide header when scrolling down */
+        .header-hidden {
+            transform: translateY(-100%);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        /* Show header */
+        .header-visible {
+            transform: translateY(0);
+            transition: transform 0.3s ease-in-out;
+        }
+    </style>
+</head>
+
+<body class="bg-light-gray text-dark">
+    <header id="header" class="bg-blue text-white py-4 fixed top-0 left-0 w-full z-50 header-visible">
+        <div class="container mx-auto flex justify-between items-center px-4">
+            <div class="flex items-center space-x-2">
+                <!-- Logo Placeholder -->
+                <div class="w-10 h-10 flex items-center justify-center">
+                    <img src="/img/logo-bsai-final.png" alt="">
+                </div>
+
+                <h1 class="text-2xl font-bold">Brainstorm AI</h1>
+            </div>
+            <nav>
+                <ul class="hidden md:flex space-x-4">
+                    <li><a href="#services" class="hover:underline">Services</a></li>
+                    <li><a href="#about" class="hover:underline">About</a></li>
+                    <li><a href="#contact" class="hover:underline">Contact</a></li>
+                    <li><a href="/auth/login" class="bg-white text-blue px-4 py-2 rounded hover:bg-mint">Login</a></li>
+                    <li><a href="/auth/register" class="bg-mint text-blue px-4 py-2 rounded hover:bg-blue">Register</a>
+                    </li>
+                </ul>
+                <div class="md:hidden">
+                    <button id="menu-toggle" class="text-white">Menu</button>
+                </div>
+            </nav>
+        </div>
+        <ul id="mobile-menu" class="hidden flex-col space-y-2 text-center bg-blue py-4 md:hidden">
+            <li><a href="#services" class="block text-white hover:underline">Services</a></li>
+            <li><a href="#about" class="block text-white hover:underline">About</a></li>
+            <li><a href="#contact" class="block text-white hover:underline">Contact</a></li>
+            <li><a href="/login" class="block bg-white text-blue px-4 py-2 rounded hover:bg-mint">Login</a></li>
+            <li><a href="/register" class="block bg-mint text-blue px-4 py-2 rounded hover:bg-blue">Register</a></li>
+        </ul>
+    </header>
+
+    <main>
+
+        <section class="relative bg-white py-20 px-4 h-screen flex items-center justify-center"
+            style="background-image: url('/img/test7.jpg'); background-size: cover; background-position: center;">
+            <div class="absolute inset-0 bg-black opacity-50"></div> <!-- This div adds the background opacity -->
+            <div class="container mx-auto text-center relative z-10">
+                <!-- z-10 ensures content stays above the background opacity -->
+                <h2 class="text-4xl font-bold mb-6 text-white inline-block">
+                    Unleash Your <span class="text-5xl font-bold text-white">Creativity</span>
+                </h2>
+                <p class="text-lg text-gray-300 mb-8">Discover AI-driven solutions to help you brainstorm ideas,
+                    innovate, and
+                    grow.</p>
+                <a href="#services" class="bg-blue text-white px-6 py-3 rounded hover:bg-mint">Get Started</a>
+            </div>
+        </section>
+
+
+        <section id="services" class="py-20 bg-light-gray px-4 h-screen flex items-center justify-center">
+            <div class="container mx-auto">
+                <h3 class="text-3xl font-bold text-center mb-12 text-blue">Our Services</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="bg-white p-6 rounded shadow">
+                        <h4 class="text-xl font-bold mb-4 text-blue">Idea Generation</h4>
+                        <p class="text-gray-600">AI-powered tools to help you come up with fresh, creative ideas.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded shadow">
+                        <h4 class="text-xl font-bold mb-4 text-blue">Content Assistance</h4>
+                        <p class="text-gray-600">Generate engaging content effortlessly with our AI solutions.</p>
+                    </div>
+                    <div class="bg-white p-6 rounded shadow">
+                        <h4 class="text-xl font-bold mb-4 text-blue">Strategy Planning</h4>
+                        <p class="text-gray-600">Leverage AI to build effective strategies for your business or
+                            projects.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="py-20 px-4 h-screen bg-mint flex items-center justify-center">
+            <div class="container mx-auto text-center">
+                <h3 class="text-3xl font-bold mb-6 text-blue">About Us</h3>
+                <p class="text-lg text-gray-800">At Brainstorm AI, we believe in the power of technology to unlock human
+                    potential. Our mission is to provide intuitive AI tools that make brainstorming and innovation
+                    accessible to everyone.</p>
+            </div>
+        </section>
+
+        <section id="contact" class="py-20 bg-light-gray px-4 h-screen flex items-center justify-center">
+            <div class="container mx-auto text-center">
+                <h3 class="text-3xl font-bold mb-6 text-blue">Contact Us</h3>
+                <p class="text-lg text-gray-600 mb-4">Have questions or want to learn more? Reach out to us!</p>
+                <a href="mailto:info@brainstormai.com" class="text-blue hover:underline">info@brainstormai.com</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-blue text-white py-4">
+        <div class="container mx-auto text-center px-4">
+            <p>&copy; 2024 Brainstorm AI. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const header = document.getElementById('header');
+        let lastScrollTop = 0;
+
+        menuToggle.addEventListener('click', () =>
+        {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        window.addEventListener('scroll', function ()
+        {
+            let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+            if (scrollTop > lastScrollTop)
+            {
+                // Scrolling down
+                header.classList.remove('header-visible');
+                header.classList.add('header-hidden');
+            } else
+            {
+                // Scrolling up
+                header.classList.remove('header-hidden');
+                header.classList.add('header-visible');
+            }
+
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop; // For Mobile or negative scrolling
+        });
+    </script>
+</body>
+
+</html>

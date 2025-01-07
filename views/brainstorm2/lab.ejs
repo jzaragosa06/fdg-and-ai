@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<%- include('../partials/head.ejs', {title: "Lab 2" }) %>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        svg {
+            border: 1px solid #ccc;
+            width: 50vw;
+            /* Increased width for better visibility */
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            position: absolute;
+            right: 0;
+        }
+
+        .node {
+            cursor: pointer;
+            fill: steelblue;
+            stroke: white;
+            stroke-width: 1.5px;
+        }
+
+        .node:hover {
+            fill: orange;
+        }
+
+        .label {
+            font-size: 12px;
+            text-anchor: middle;
+            pointer-events: none;
+        }
+
+        /* Tooltip styling */
+        .tooltip {
+            position: absolute;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 4px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 14px;
+        }
+
+        .highlighted {
+            fill: red !important;
+            /* Highlight color */
+        }
+    </style>
+
+
+    <body>
+        <%- include('../partials/header.ejs', {name: name}) %>
+            <main class="flex justify-between p-8">
+                <!-- Left Section -->
+                <div class="w-1/2 p-4 space-y-6 mt-24">
+                    <!-- Input Section -->
+                    <div class="bg-gray-100 p-4 rounded-md shadow-md">
+                        <h2 class="text-xl font-bold mb-2">Add a New Idea</h2>
+                        <div class="flex gap-2">
+                            <input type="text" id="idea" placeholder="Enter your idea here"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <input list="options" id="brainstormFocus" required
+                                placeholder="Describe what you want to brainstorm"
+                                class="border border-gray-300 rounded-md px-3 py-2 text-sm w-1/3 min-w-[200px]">
+                            <datalist id="options">
+                                <option value="Look for relationships">
+                                <option value="Describe cause and effect">
+                                <option value="Explore possible solutions">
+                            </datalist>
+                            <button id="addIdea"
+                                class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Add</button>
+                        </div>
+                    </div>
+
+                    <!-- Two Columns for AI & Notes -->
+                    <div class="grid grid-cols-2 gap-4 mt-4 h-[400px]">
+                        <!-- AI-Generated Ideas -->
+                        <div class="bg-gray-50 p-4 rounded-md shadow-md flex flex-col h-full">
+                            <h3 class="text-lg font-semibold mb-2">AI-Generated Ideas</h3>
+                            <div class="text-sm text-gray-700 space-y-2 flex-grow overflow-auto">
+                                <div id="ai_text">
+                                    No AI suggestions yet.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notes Section -->
+                        <div class="bg-gray-50 p-4 rounded-md shadow-md flex flex-col h-full">
+                            <h3 class="text-lg font-semibold mb-2">Notes</h3>
+                            <div id="editor"
+                                class="text-sm text-gray-700 space-y-2 flex-grow overflow-auto border rounded-md">
+                                <!-- Quill editor will initialize here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Section: Force-Directed Graph -->
+                <svg class="w-1/2 h-full"></svg>
+
+                <!-- Tooltip -->
+                <div class="tooltip"></div>
+            </main>
+            <div id="loading"
+                class="hidden fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
+                <div
+                    class="w-16 h-16 border-4 border-t-blue-500 border-gray-200 border-solid rounded-full animate-spin">
+                </div>
+            </div>
+
+
+            <div id="initialModal"
+                class="hidden fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75 z-50">
+                <div class="bg-white rounded-xl shadow-2xl p-8 max-w-lg w-full text-center relative overflow-hidden">
+                    <!-- Decorative Top Bar -->
+                    <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 to-blue-700"></div>
+
+                    <!-- Modal Content -->
+                    <h2 class="text-3xl font-extrabold text-gray-800 mb-4">🚀 Welcome to the Brainstorming Lab!</h2>
+                    <p class="mb-6 text-gray-600 text-lg">
+                        Add Ideas and let the system brainstorm them for you.
+                        Get started with your brainstorming session by following these steps:
+                    </p>
+                    <div class="bg-gray-50 rounded-lg p-4 mb-6 shadow-inner border border-gray-200">
+                        <ul class="text-left list-disc list-inside text-gray-700 space-y-2">
+                            <li><strong>Add at least two ideas</strong> to get started</li>
+                            <li><strong>Specify your brainstorming focus</strong> in the input field.</li>
+                            <li>Let the system generate a<strong>Force-Directed Graph</strong> and <strong>recommend
+                                    ideas</strong>
+                            </li>
+                            <li>Add as much ideas as you like</li>
+                        </ul>
+                    </div>
+
+                    <!-- Call-to-Action Button -->
+                    <button id="closeModal"
+                        class="bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold px-6 py-2 rounded-full shadow-md hover:from-blue-600 hover:to-blue-700 hover:shadow-lg transition-transform transform hover:scale-105">
+                        Got it!
+                    </button>
+
+                    <!-- Decorative Bottom Bar -->
+                    <div class="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-blue-500 to-blue-700"></div>
+                </div>
+            </div>
+
+
+
+    </body>
+
+    <script>
+        //globally accessible variables
+        const lab_id = <%= lab_id %>;
+    </script>
+
+    <script>
+        var quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: false, // or specify an array for custom toolbar options
+            },
+            placeholder: 'Write your notes here...'
+        });
+
+        let autoSaveTimer;
+
+        function autoSave()
+        {
+            const htmlContent = quill.root.innerHTML;
+
+            console.log(htmlContent);
+            console.log(lab_id);
+
+            axios.post('/brainstorm2/save-note', { lab_id: lab_id, htmlContent: htmlContent }).then((result) =>
+            {
+                console.log(result)
+            }).catch((err) =>
+            {
+                console.log(err);
+            });
+        }
+
+        quill.on('text-change', () =>
+        {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(autoSave, 5000);
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        function load_force_directed_graph({ nodes, links, svgSelector, width, height })
+        {
+            // Select the SVG element and set dimensions
+            const svg = d3.select(svgSelector)
+                .attr("width", width)
+                .attr("height", height);
+
+            //remove existing FDG
+            svg.selectAll("*").remove();
+
+            // Create a group element to wrap the graph content
+            const graphGroup = svg.append("g");
+
+            // Create a simulation for the force-directed graph
+            const simulation = d3.forceSimulation(nodes)
+                .force("link", d3.forceLink(links).id(d => d.id).distance(150))
+                .force("charge", d3.forceManyBody().strength(-200))
+                .force("center", d3.forceCenter(width / 2, height / 2));
+
+            // Create the links (edges) between nodes
+            const link = graphGroup.append("g")
+                .selectAll(".link")
+                .data(links)
+                .enter().append("line")
+                .attr("class", "link")
+                .attr("stroke-width", 2)
+                .attr("stroke", "#aaa");
+
+            // Create the nodes
+            const node = graphGroup.append("g")
+                .selectAll(".node")
+                .data(nodes)
+                .enter().append("circle")
+                .attr("class", "node")
+                .attr("r", 10)
+                .attr("fill", "steelblue")
+                .call(d3.drag()
+                    .on("start", dragStart)
+                    .on("drag", dragMove)
+                    .on("end", dragEnd));
+
+            // Add labels to the nodes
+            const labels = graphGroup.append("g")
+                .selectAll(".label")
+                .data(nodes)
+                .enter().append("text")
+                .attr("class", "label")
+                .attr("dy", -15)
+                .text(d => d.label);
+
+            // Create the tooltip element
+            const tooltip = d3.select(".tooltip");
+
+            // Update positions on each tick of the simulation
+            simulation.on("tick", () =>
+            {
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                node
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+
+                labels
+                    .attr("x", d => d.x)
+                    .attr("y", d => d.y);
+            });
+
+            // Dragging functions
+            function dragStart(event, d)
+            {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragMove(event, d)
+            {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+
+            function dragEnd(event, d)
+            {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+
+            // Highlight adjacent nodes when hovering or clicking
+            function highlightAdjacentNodes(d)
+            {
+                const adjacentLinks = links.filter(link => link.source.id === d.id || link.target.id === d.id);
+                const adjacentNodeIds = adjacentLinks.map(link => link.source.id === d.id ? link.target.id : link.source.id);
+
+                node.classed("highlighted", nodeData => adjacentNodeIds.includes(nodeData.id));
+                link.classed("highlighted", linkData => linkData.source.id === d.id || linkData.target.id === d.id);
+            }
+
+            // Reset highlighted nodes
+            function resetHighlights()
+            {
+                node.classed("highlighted", false);
+                link.classed("highlighted", false);
+            }
+
+            // Mouseover and mouseout events for the tooltip
+            node.on("mouseover", function (event, d)
+            {
+                tooltip.transition().duration(200).style("opacity", 0.9);
+                tooltip.html(d.info)
+                    .style("left", (event.pageX + 5) + "px")
+                    .style("top", (event.pageY - 28) + "px");
+                highlightAdjacentNodes(d);
+            })
+                .on("mouseout", function ()
+                {
+                    tooltip.transition().duration(200).style("opacity", 0);
+                    resetHighlights();
+                });
+
+            // Click event to toggle highlights
+            node.on("click", function (event, d)
+            {
+                if (d3.select(this).classed("highlighted"))
+                {
+                    resetHighlights();
+                } else
+                {
+                    highlightAdjacentNodes(d);
+                }
+            });
+
+            // Add zoom functionality
+            svg.call(d3.zoom().on("zoom", (event) =>
+            {
+                graphGroup.attr("transform", event.transform);
+            }));
+
+
+
+        }
+
+        // Example usage of the reusable function
+        var nodes = [
+
+        ];
+
+        var links = [
+
+        ];
+
+        var ideas = [];
+
+        const width = window.innerWidth * 0.6;
+        const height = window.innerHeight * 0.8;
+
+        document.getElementById("addIdea").addEventListener("click", function ()
+        {
+            const idea = document.getElementById("idea");
+            const brainstormFocus = document.getElementById("brainstormFocus").value;
+            ideas.push(idea.value);
+            idea.value = "";
+            //brainstormFocus.value = "";
+
+            console.log(ideas);
+
+            // Show the loading indicator
+            document.getElementById("loading").classList.remove("hidden");
+
+            if (ideas.length >= 2)
+            {
+                axios.post("/brainstorm2/generate-fdg-data", { ideas: ideas, brainstormFocus: brainstormFocus })
+                    .then((result) =>
+                    {
+                        nodes = result.data.nodes;
+                        links = result.data.links;
+
+                        load_force_directed_graph({ nodes, links, svgSelector: "svg", width, height });
+
+                        llm();
+
+                        // Hide the loading indicator after the request completes
+                        document.getElementById("loading").classList.add("hidden");
+                    })
+                    .catch((err) =>
+                    {
+                        // Handle error (optional)
+                        console.error("Error:", err);
+
+                        // Hide the loading indicator if there's an error
+                        document.getElementById("loading").classList.add("hidden");
+                    });
+            } else
+            {
+                // If ideas are less than 2, no request is made, hide the loading indicator
+                document.getElementById("loading").classList.add("hidden");
+            }
+        });
+
+
+
+
+        function save_nodes_ideas_links_brainstormFocus_ai_text()
+        {
+            //inside of the ai-text container
+            const ai_text = document.getElementById("ai_text").innerHTML;
+            const brainstormFocus = document.getElementById("brainstormFocus").value;
+            axios.post("/brainstorm2/save_nodes_ideas_links_brainstormFocus_ai_text", { lab_id: lab_id, nodes: nodes, links: links, ideas: ideas, brainstormFocus: brainstormFocus, ai_text: ai_text }).then((result) =>
+            {
+                console.log(result);
+            }).catch((err) =>
+            {
+                console.log(err);
+            });
+        }
+
+        async function llm()
+        {
+            const ai_text = document.getElementById("ai_text");
+            const brainstormFocus = document.getElementById("brainstormFocus").value;
+            ai_text.innerHTML = "";
+
+            try
+            {
+                // Send the list_selected_texts array to the server
+                // Use absolute URL for fetch and EventSource
+                const response = await fetch('/brainstorm2/start-stream', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ideas, brainstormFocus }),
+                });
+
+                if (!response.ok)
+                {
+                    ai_text.innerHTML = `<p><em>Error occurred while initiating the stream: ${response.statusText}</em></p>`;
+                    return;
+                }
+
+                // Open SSE connection for the streamed response
+                // const eventSource = new EventSource('/llm-stream');
+                const eventSource = new EventSource('/brainstorm2/llm-stream');
+
+                eventSource.onmessage = function (event)
+                {
+                    ai_text.innerHTML += event.data; // Append chunk to the response div
+                };
+
+                eventSource.onerror = function ()
+                {
+                    save_nodes_ideas_links_brainstormFocus_ai_text();
+                    eventSource.close();
+                };
+            } catch (error)
+            {
+                console.error('Error during fetch or SSE connection:', error);
+                ai_text.innerHTML = `<p><em>Unexpected error occurred: ${error.message}</em></p>`;
+            }
+        }
+
+
+
+        // Function to extract query parameters from the URL
+        function getQueryParameter(name)
+        {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+
+        document.addEventListener("DOMContentLoaded", () =>
+        {
+            const initial = getQueryParameter('initial');
+            const modal = document.getElementById('initialModal');
+            const closeModal = document.getElementById('closeModal');
+
+            if (initial === 'true')
+            {
+                modal.classList.remove('hidden');
+            }
+
+            closeModal.addEventListener('click', () =>
+            {
+                modal.classList.add('hidden');
+            });
+
+            console.log("lab id", lab_id);
+            axios.get(`/brainstorm2/load-history/${lab_id}`).then((result) =>
+            {
+                if (result.data.nodes != null)
+                {
+                    nodes = result.data.nodes;
+                    links = result.data.links;
+                    load_force_directed_graph({ nodes, links, svgSelector: "svg", width, height });
+                }
+
+                if (result.data.ideas != null)
+                {
+                    ideas = result.data.ideas;
+                }
+
+                if (result.data.ai_text != null)
+                {
+                    document.getElementById("ai_text").innerHTML = result.data.ai_text;
+                }
+
+                if (result.data.note != null)
+                {
+                    //quill.root.innerHTML = result.data.notes;
+                    quill.clipboard.dangerouslyPasteHTML(result.data.note);
+                }
+
+                if (result.data.brainstormFocus != null)
+                {
+                    document.getElementById("brainstormFocus").value = result.data.brainstormFocus;
+                }
+            }).catch((err) =>
+            {
+
+            });
+        });
+    </script>
+
+
+
+</html>
