@@ -6,11 +6,8 @@ require("dotenv").config();
 const PDFDocument = require('pdfkit');
 
 const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
-const { render } = require("ejs");
 const { log } = require("console");
-const con = require("../db/connection");
 const router = express.Router();
-
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
 const schema = {
@@ -78,11 +75,9 @@ function processGraphData(responseText)
     }
 }
 
-router.get("/lab/:lab_id", (req, res) =>
+router.get("/lab", (req, res) =>
 {
-    const lab_id = req.params.lab_id;
-
-    res.render("brainstorm2/lab", { lab_id: lab_id, name: req.session.name });
+    res.sendFile(path.join(__dirname, "..", "views", "brainstorm2", "lab.html"));
 });
 
 router.post("/generate-fdg-data", async (req, res) =>
@@ -108,53 +103,8 @@ router.post("/generate-fdg-data", async (req, res) =>
     {
         console.error(err);
         res.json({ nodes: [], links: [] });
-
     }
 });
-
-
-router.get("/create-lab", (req, res) =>
-{
-    const user_id = req.session.user_id;
-    const lab_name = `brainstorm_lab_${crypto.randomInt(100, 10000)}`;
-
-
-    const sql = "INSERT INTO brainstorm2s (user_id, lab_name) VALUES (?, ?)";
-
-    con.query(sql, [user_id, lab_name], (err, result) =>
-    {
-        if (err)
-        {
-            res.send(err);
-        }
-        else
-        {
-            const lab_id = result.insertId;
-            res.redirect(`/brainstorm2/lab/${lab_id}?initial=true`);
-
-        }
-    })
-});
-
-router.post("/save-note", (req, res) =>
-{
-    const { lab_id, htmlContent } = req.body;
-
-    const sql = "UPDATE brainstorm2s SET note = ? WHERE id = ?";
-    con.query(sql, [htmlContent, lab_id], (err, result) =>
-    {
-        if (err)
-        {
-            console.error(err);
-            res.status(500).send("error");
-        }
-        else
-        {
-            res.send("saved successfully");
-        }
-    });
-});
-
 
 const streamData = {};
 router.post('/start-stream', express.json(), (req, res) =>
@@ -203,78 +153,6 @@ router.get('/llm-stream', async (req, res) =>
     }
 });
 
-
-router.post('/save_nodes_ideas_links_brainstormFocus_ai_text', (req, res) =>
-{
-    const { lab_id, nodes, links, ideas, brainstormFocus, ai_text } = req.body;
-
-    console.log("lab id is", lab_id);
-    console.log("nodes ", nodes);
-    console.log("ideas ", ideas);
-    console.log("links ", links);
-    console.log("ai_text ", ai_text);
-    console.log("brainstormFocus ", brainstormFocus);
-
-    const sql = "UPDATE brainstorm2s SET nodes = ?, links = ?, ideas = ?, brainstormFocus = ?,  ai_text = ? WHERE id = ?";
-    con.query(sql, [JSON.stringify(nodes), JSON.stringify(links), JSON.stringify(ideas), brainstormFocus, ai_text, lab_id], (err, result) =>
-    {
-        if (err)
-        {
-            console.error(err);
-            res.status(500).send("error");
-        }
-        else
-        {
-            res.send("saved successfully");
-        }
-    });
-});
-
-
-router.get("/load-history/:lab_id", (req, res) =>
-{
-    const lab_id = req.params.lab_id;
-
-    const sql = "SELECT * FROM brainstorm2s WHERE id = ?";
-    con.query(sql, [lab_id], (err, result) =>
-    {
-        if (err)
-        {
-            res.status(500).send(err);
-        }
-        else
-        {
-
-            const data = {
-                note: result[0].note,
-                nodes: JSON.parse(result[0].nodes),
-                links: JSON.parse(result[0].links),
-                ideas: JSON.parse(result[0].ideas),
-                ai_text: result[0].ai_text,
-                brainstormFocus: result[0].brainstormFocus,
-            };
-
-            res.json(data);
-        }
-    });
-});
-
-router.get("/delete/:lab_id", (req, res) =>
-{
-    const lab_id = req.params.lab_id;
-    const sql = "DELETE FROM brainstorm2s WHERE id = ?";
-    con.query(sql, [lab_id], (err, results) =>
-    {
-        if (err)
-        {
-            res.status(500).send(err);
-        }
-        else
-        {
-            res.redirect("/manage");
-        }
-    });
-});
 
 router.get('/download-pdf/:lab_id', (req, res) =>
 {

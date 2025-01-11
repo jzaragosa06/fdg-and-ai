@@ -1,0 +1,100 @@
+/* Custom color scheme */
+:root {
+    --blue-color: #106EBE;
+    --mint-color: #0FFCBE;
+    --light-gray: #F7FAFC;
+    --dark-gray: #2D3748;
+}
+
+/* Applying custom colors */
+.bg-blue {
+    background-color: var(--blue-color);
+}
+
+.bg-mint {
+    background-color: var(--mint-color);
+}
+
+.text-blue {
+    color: var(--blue-color);
+}
+
+.text-mint {
+    color: var(--mint-color);
+}
+
+.text-dark {
+    color: var(--dark-gray);
+}
+
+.bg-light-gray {
+    background-color: var(--light-gray);
+}
+
+/* Simple Spinner */
+.loader {
+    border-top-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+svg {
+    border: 1px solid #ccc;
+    width: 50vw;
+    /* Increased width for better visibility */
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    right: 0;
+}
+
+.node {
+    cursor: pointer;
+    fill: steelblue;
+    stroke: white;
+    stroke-width: 1.5px;
+}
+
+.node:hover {
+    fill: orange;
+}
+
+.label {
+    font-size: 12px;
+    text-anchor: middle;
+    pointer-events: none;
+}
+
+/* Tooltip styling */
+.tooltip {
+    position: absolute;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    border-radius: 4px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 14px;
+}
+
+.highlighted {
+    fill: red !important;
+    /* Highlight color */
+}

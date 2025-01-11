@@ -5,7 +5,6 @@ const multer = require('multer'); // For file uploads
 const { GoogleGenerativeAI, SchemaType } = require('@google/generative-ai');
 const crypto = require('crypto');
 const PDFDocument = require('pdfkit');
-const con = require("../db/connection");
 const router = express.Router();
 
 // Initialize Google Generative AI with API key
@@ -113,32 +112,12 @@ function processGraphData(responseText)
     }
 }
 
-router.get("/create-lab", (req, res) =>
-{
-    const user_id = req.session.user_id;
-    const lab_name = `brainstorm_lab_${crypto.randomInt(100, 10000)}`;
 
-    const sql = "INSERT INTO brainstorm3s (user_id, lab_name) VALUES (?, ?)";
-
-    con.query(sql, [user_id, lab_name], (err, result) =>
-    {
-        if (err)
-        {
-            res.send(err);
-        }
-        else
-        {
-            const lab_id = result.insertId;
-            res.redirect(`/brainstorm3/lab/${lab_id}?initial=true`);
-        }
-    });
-})
 
 // Route to render the upload page
-router.get('/lab/:lab_id', (req, res) =>
+router.get('/lab', (req, res) =>
 {
-    const lab_id = req.params.lab_id;
-    res.render('brainstorm3/lab', { lab_id: lab_id, name: req.session.name });
+    res.sendFile(path.join(__dirname, "..", "views", "brainstorm3", "lab.html"));
 });
 
 // Route to handle image upload and processing
@@ -147,10 +126,7 @@ router.post('/generate-fdg-data', upload.single('image'), async (req, res) =>
     try
     {
         const brainstormFocus = req.body.brainstormFocus;
-        const lab_id = req.body.lab_id;
-
         console.log(brainstormFocus);
-        console.log(lab_id);
 
         const filePath = req.file.path; // Path to the uploaded file
         const filename = req.file.filename; // Name of the uploaded file
@@ -167,24 +143,6 @@ router.post('/generate-fdg-data', upload.single('image'), async (req, res) =>
         // Extract nodes and links from structured JSON response
         const { nodes, links } = processGraphData(result.response.text());
 
-        //save the brainstormFocus and image_path to the database
-        const sql = "UPDATE brainstorm3s SET brainstormFocus = ?, image = ? WHERE id = ?";
-
-        const result_update = con.execute(sql, [brainstormFocus, filename, lab_id], (err, result) =>
-        {
-            if (err)
-            {
-                console.error(err);
-                res.status(500).send("error");
-            }
-
-        });
-
-
-      
-
-
-
         // Respond with structured graph data
         res.json({ nodes, links });
     } catch (error)
@@ -193,14 +151,17 @@ router.post('/generate-fdg-data', upload.single('image'), async (req, res) =>
         res.status(500).send('An error occurred while processing the image.');
     } finally
     {
-
+        //clean up the uploaded file
+        if (req.file && req.file.path)
+        {
+            fs.unlinkSync(req.file.path);
+        }
     }
 });
 
 
 
 const streamData = {};
-
 router.post("/start-stream", express.json(), (req, res) =>
 {
     const sessionId = req.body.sessionId || "default-session";
@@ -291,67 +252,6 @@ router.get("/images/:filename", (req, res) =>
 });
 
 
-router.post("/save-nodes-links-brainstormFocus-ai-text", (req, res) =>
-{
-    const { nodes, links, brainstormFocus, ai_text, lab_id } = req.body;
-
-    const sql = "UPDATE brainstorm3s SET nodes = ?, links = ?, brainstormFocus = ?, ai_text = ? WHERE id = ?";
-    con.query(sql, [JSON.stringify(nodes), JSON.stringify(links), brainstormFocus, ai_text, lab_id], (err, result) =>
-    {
-        if (err)
-        {
-            res.status(500).send(err);
-        }
-        else
-        {
-            res.status(200).send("updated successfully");
-        }
-    });
-});
-
-
-router.get("/load-history/:lab_id", (req, res) =>
-{
-    const lab_id = req.params.lab_id;
-
-    const sql = "SELECT * FROM brainstorm3s WHERE id = ?";
-    con.query(sql, [lab_id], (err, result) =>
-    {
-        if (err)
-        {
-            res.send(err);
-        }
-        else
-        {
-            const data = {
-                nodes: JSON.parse(result[0].nodes),
-                links: JSON.parse(result[0].links),
-                brainstormFocus: result[0].brainstormFocus,
-                ai_text: result[0].ai_text,
-                image: result[0].image,
-            }
-            res.json(data);
-
-        }
-    })
-});
-
-router.get("/delete/:lab_id", (req, res) =>
-{
-    const lab_id = req.params.lab_id;
-    const sql = "DELETE FROM brainstorm3s WHERE id = ?";
-    con.query(sql, [lab_id], (err, results) =>
-    {
-        if (err)
-        {
-            res.status(500).send(err);
-        }
-        else
-        {
-            res.redirect("/manage");
-        }
-    });
-});
 
 router.get('/download-pdf/:lab_id', (req, res) =>
 {
@@ -428,4 +328,5 @@ router.get('/download-pdf/:lab_id', (req, res) =>
         }
     });
 });
+
 module.exports = router;
