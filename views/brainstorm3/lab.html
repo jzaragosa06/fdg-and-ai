@@ -9,7 +9,6 @@
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"
         integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 
-
     <!-- JQuery UI -->
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <!-- Tailwind CSS CDN -->
@@ -80,6 +79,8 @@
                 </form>
             </div>
 
+
+
             <!-- Uploaded Image -->
             <div class="bg-gray-50 p-4 rounded-md shadow-md">
                 <h2 class="text-lg font-semibold mb-2">Uploaded Image</h2>
@@ -96,10 +97,36 @@
             </div>
         </div>
 
+        <script>
+            const imageInput = document.getElementById("image");
+            const preview = document.getElementById("uploaded-image-content");
+
+            imageInput.addEventListener('change', function ()
+            {
+                const file = this.files[0];
+
+                if (file)
+                {
+                    const reader = new FileReader();
+
+                    reader.onload = function (e)
+                    {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                    };
+
+                    reader.readAsDataURL(file);
+                } else
+                {
+                    preview.style.display = 'none';
+                    preview.src = '#';
+                }
+            });
+        </script>
+
         <!-- Right Container: Force Directed Graph -->
         <div class="w-full md:w-1/2 relative">
             <svg></svg>
-
         </div>
         <div class="tooltip"></div>
     </main>
@@ -290,22 +317,6 @@
         }));
 
 
-    }
-
-    async function load_image()
-    {
-        await axios.get(`/brainstorm3/load-image/${lab_id}`).then((result) =>
-        {
-            console.log("results", result);
-            const image = result.data.image;
-            const upload_image_content = document.getElementById("uploaded-image-content");
-            upload_image_content.src = "/brainstorm3/images/" + image;
-
-
-        }).catch((err) =>
-        {
-            console.error(err);
-        });
     }
 
 
