@@ -2,11 +2,13 @@ const path = require("path");
 const axios = require("axios");
 const express = require("express");
 const crypto = require('crypto');
+const { format } = require('date-fns');
 require("dotenv").config();
 const PDFDocument = require('pdfkit');
 
 const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
 const { log } = require("console");
+const { notEqual } = require("assert");
 const router = express.Router();
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
@@ -154,68 +156,54 @@ router.get('/llm-stream', async (req, res) =>
 });
 
 
-router.get('/download-pdf/:lab_id', (req, res) =>
+router.post('/download-pdf', (req, res) =>
 {
-    const lab_id = req.params.lab_id;
+    const ai_text = req.body.ai_text;
+    const note = req.body.note;
 
-    // Query the database for the lab project data
-    const sql = "SELECT * FROM brainstorm2s WHERE id = ?";
-    con.query(sql, [lab_id], (err, result) =>
-    {
-        if (err)
-        {
-            res.status(500).send(err);
-        } else
-        {
-            const project = {
-                lab_name: result[0].lab_name,
-                created_at: result[0].created_at,
-                ai_text: result[0].ai_text,
-            };
+    const project = {
+        lab_name: "Passive Brainstorming: Brainstorm3",
+        created_at: format(new Date(), 'MM-dd-yy HH:mm:ss'),
+        ai_text: ai_text,
+        note: note
+    };
 
-            // Create a new PDF document
-            const doc = new PDFDocument();
+    // Create a new PDF document
+    const doc = new PDFDocument();
 
-            // Set the response headers to force the download of the PDF
-            res.setHeader('Content-Type', 'application/pdf');
-            res.setHeader('Content-Disposition', `attachment; filename=project-${lab_id}.pdf`);
+    // Set the response headers to force the download of the PDF
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=project.pdf`);
 
-            // Pipe the PDF document to the response
-            doc.pipe(res);
+    // Pipe the PDF document to the response
+    doc.pipe(res);
 
-            // Add blue background to the entire page
-            doc.rect(0, 0, 612, 200).fill('#1E40AF'); // Filling the page with a blue color
+    // Add blue background to the entire page
+    doc.rect(0, 0, 612, 200).fill('#1E40AF'); // Filling the page with a blue color
 
-            // Add the logo image
-            const logoPath = path.join(__dirname, '..', 'public', 'img', 'logo-bsai-final.png'); // Assuming logo is stored in the 'public' directory
-            doc.image(logoPath, { width: 75, align: 'center' }); // Add logo with a fixed width of 100px
-            doc.moveDown(2); // Move down a bit after the logo
+    // Add the logo image
+    const logoPath = path.join(__dirname, '..', 'public', 'img', 'logo-bsai-final.png'); // Assuming logo is stored in the 'public' directory
+    doc.image(logoPath, { width: 75, align: 'center' }); // Add logo with a fixed width of 100px
+    doc.moveDown(2); // Move down a bit after the logo
 
-            // Add header for the website
-            doc.fontSize(18).fillColor('white').text('Brainstorm AI', { align: 'center' });
-            doc.moveDown(1); // Adding space after the header
+    // Add header for the website
+    doc.fontSize(18).fillColor('white').text('Brainstorm AI', { align: 'center' });
+    doc.moveDown(1); // Adding space after the header
 
-            // Add the lab name and creation date in white color
-            doc.fontSize(16).fillColor('white').text(`Lab Name: ${project.lab_name}`, { align: 'center' });
-            doc.fontSize(12).fillColor('white').text(`Date Created: ${project.created_at}`, { align: 'center' });
-            doc.moveDown(2); // Adding space before the content
+    // Add the lab name and creation date in white color
+    doc.fontSize(16).fillColor('white').text(`Lab Name: ${project.lab_name}`, { align: 'center' });
+    doc.fontSize(12).fillColor('white').text(`Date Created: ${project.created_at}`, { align: 'center' });
+    doc.moveDown(2); // Adding space before the content
 
+    doc.fontSize(12).fillColor('black').text('AI Generated Text:', { underline: true });
+    doc.fontSize(10).fillColor('black').text(project.ai_text);
+    doc.moveDown(2); // Adding space before the next section
 
-            doc.fontSize(12).fillColor('black').text('AI Generated Text:', { underline: true });
-            doc.fontSize(10).fillColor('black').text(project.ai_text);
-            doc.moveDown(2); // Adding space before the next section
+    doc.fontSize(12).fillColor('black').text('Note Texts:', { underline: true });
+    doc.fontSize(10).fillColor('black').text(project.note);
 
-            // Add extracted texts from text_array as a list
-            // doc.fontSize(12).fillColor('black').text('Extracted Texts:', { underline: true });
-            // project.text_array.forEach((text, index) =>
-            // {
-            //     doc.fontSize(10).fillColor('black').text(`${index + 1}. ${text}`);
-            // });
-
-            // Finalize the PDF and send it to the client
-            doc.end();
-        }
-    });
+    // Finalize the PDF and send it to the client
+    doc.end();
 });
 
 module.exports = router;

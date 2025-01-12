@@ -47,7 +47,9 @@
 
 <body>
     <header class="w-full bg-blue-500 p-4">
-        <h1 class="text-white text-3xl font-bold">Brainstorm AI</h1>
+        <a href="/">
+            <h1 class="text-white text-3xl font-bold">Brainstorm AI</h1>
+        </a>
         <p class="text-white text-sm">Helping you create and understand ideas</p>
     </header>
 
@@ -72,6 +74,11 @@
                         class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Add</button>
                 </div>
             </div>
+
+            <div id="display-ideas-section">
+
+            </div>
+
 
             <!-- Two Columns for AI & Notes -->
             <div class="grid grid-cols-2 gap-4 mt-4 h-[400px]">
@@ -140,9 +147,14 @@
         </div>
     </div>
 
-
-
+    <!-- Floating Toggle Button -->
+    <button id="print-button"
+        class="fixed bottom-5 right-5 z-50 bg-blue-500 text-white p-3 rounded-full shadow-lg hover:bg-blue-600 transition-all duration-300">
+        <i class="fa-solid fa-file-pdf"></i>
+    </button>
 </body>
+
+
 
 <script>
     var quill = new Quill('#editor', {
@@ -153,7 +165,31 @@
         placeholder: 'Write your notes here...'
     });
 
+    document.getElementById("print-button").addEventListener("click", () =>
+    {
+        const ai_text = document.getElementById("ai_text").textContent;
+        const note = quill.getText();
+
+
+        axios.post("/brainstorm2/download-pdf", { ai_text: ai_text, note: note }, { responseType: 'blob' })
+            .then((response) =>
+            {
+                // Create a blob URL and trigger the download
+                const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'project.pdf'); // The file name
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            })
+            .catch((err) =>
+            {
+                console.error("Error downloading PDF:", err);
+            });
+    });
 </script>
+
 
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
@@ -313,25 +349,7 @@
 
     ];
 
-    /*
-    var nodes = [
-        { id: 1, label: "Node 1", info: "This is Node 1's info." },
-        { id: 2, label: "Node 2", info: "This is Node 2's info." },
-        { id: 3, label: "Node 3", info: "This is Node 3's info." },
-        { id: 4, label: "Node 4", info: "This is Node 4's info." },
-    ];
-
-    var links = [
-        { source: 1, target: 2 },
-        { source: 1, target: 3 },
-        { source: 2, target: 4 },
-        { source: 3, target: 4 },
-    ];
-    */
-
     var ideas = [];
-
-
 
     const width = window.innerWidth * 0.6;
     const height = window.innerHeight * 0.8;
@@ -343,6 +361,10 @@
         ideas.push(idea.value);
         idea.value = "";
         console.log(ideas);
+
+        //display idea
+        display_ideas();
+
 
         // Show the loading indicator
         document.getElementById("loading").classList.remove("hidden");
@@ -420,30 +442,36 @@
         }
     }
 
-    // Function to extract query parameters from the URL
-    function getQueryParameter(name)
-    {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(name);
-    }
 
 
     document.addEventListener("DOMContentLoaded", () =>
     {
-        const initial = getQueryParameter('initial');
         const modal = document.getElementById('initialModal');
         const closeModal = document.getElementById('closeModal');
-
-        if (initial === 'true')
-        {
-            modal.classList.remove('hidden');
-        }
+        modal.classList.remove('hidden');
 
         closeModal.addEventListener('click', () =>
         {
             modal.classList.add('hidden');
         });
     });
+
+    function display_ideas()
+    {
+        const display_ideas_section = document.getElementById("display-ideas-section");
+        display_ideas_section.innerHTML = "";
+        ideas.forEach((idea) =>
+        {
+            const span_item = document.createElement("span");
+            span_item.innerText = idea;
+            span_item.className = "bg-blue-100 text-blue-600 text-xs font-medium mr-2 mb-2 px-3 py-1 rounded-lg";
+            display_ideas_section.appendChild(span_item);
+        });
+    }
+
+
+
+
 </script>
 
 
