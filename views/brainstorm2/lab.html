@@ -356,9 +356,18 @@
 
     document.getElementById("addIdea").addEventListener("click", function ()
     {
+
         const idea = document.getElementById("idea");
         const brainstormFocus = document.getElementById("brainstormFocus").value;
+
+        if (brainstormFocus == "")
+        {
+            alert("Please indicate the focus");
+            return
+        }
+
         ideas.push(idea.value);
+
         idea.value = "";
         console.log(ideas);
 
